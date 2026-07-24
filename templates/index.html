@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shopping Assistant Bot</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h2>🛍 Shopping Assistant Bot</h2>
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Ask about products...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            let message = document.getElementById("user-input").value;
+            let response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({message})
+            });
+            let data = await response.json();
+
+            let chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = "";
+            data.response.forEach(product => {
+                chatBox.innerHTML += `
+                    <div class="product">
+                        <img src="${product.image_url}" width="120">
+                        <p><b>${product.productDisplayname}</b></p>
+                        <p>Price: ₹${product.price}</p>
+                        <p>${product.baseCOlour}, ${product.gender}, ${product.season}</p>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
