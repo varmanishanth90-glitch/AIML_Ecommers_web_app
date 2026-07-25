@@ -42,8 +42,10 @@ def chat():
         SELECT id, gender, masterCategory, subCategory, ArticleType, baseCOlour,
                season, productDisplayname, price
         FROM ecommerce_proj_data
-        WHERE productDisplayname LIKE %s OR baseCOlour LIKE %s
-        limit 20
+        WHERE productDisplayname LIKE %s OR baseCOlour LIKE %s OR gender LIKE %s
+          OR masterCategory LIKE %s OR subCategory LIKE %s
+
+        limit 100
     """
     cursor.execute(query, (f"%{user_message}%", f"%{user_message}%"))
     products = cursor.fetchall()
