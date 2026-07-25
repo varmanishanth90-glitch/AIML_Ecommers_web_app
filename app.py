@@ -47,7 +47,14 @@ def chat():
 
         limit 100
     """
-    cursor.execute(query, (f"%{user_message}%", f"%{user_message}%"))
+    
+    cursor.execute(query, (
+    f"%{user_message}%", 
+    f"%{user_message}%", 
+    f"%{user_message}%", 
+    f"%{user_message}%", 
+    f"%{user_message}%"
+))
     products = cursor.fetchall()
 
     results = []
