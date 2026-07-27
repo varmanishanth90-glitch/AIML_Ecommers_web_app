@@ -5,99 +5,64 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="chat-container">
-        <h2>🛍 Shopping Assistant Bot</h2>
-        <div id="chat-box"></div>
-
-        <!-- Comparison screen -->
-        <div id="comparison-box" style="display:none;">
-            <h3>🔍 Product Comparison</h3>
-            <div id="comparison-results"></div>
-            <button onclick="closeComparison()">Close</button>
-        </div>
-
-        <div id="input-box">
-            <input type="text" id="user-input" placeholder="Ask about products...">
-            <button onclick="sendMessage()">Send</button>
-            <button onclick="compareProducts()">Compare Selected</button>
-        </div>
+    <div class="filters">
+        <form id="filter-form">
+            Gender: <input type="text" name="gender">
+            Category: <input type="text" name="masterCategory">
+            Subcategory: <input type="text" name="subCategory">
+            Article Type: <input type="text" name="ArticleType">
+            Colour: <input type="text" name="baseCOlour">
+            Season: <input type="text" name="season">
+            Min Price: <input type="number" name="min_price">
+            Max Price: <input type="number" name="max_price">
+            <button type="submit">Apply Filters</button>
+        </form>
     </div>
 
+    <div id="product-grid" class="grid"></div>
+
+    <div id="pagination"></div>
+
     <script>
-        let selectedProducts = [];
+        let currentPage = 1;
 
-        async function sendMessage() {
-            let message = document.getElementById("user-input").value;
-            let response = await fetch("/chat", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({message})
-            });
+        async function loadProducts(page=1) {
+            currentPage = page;
+            const formData = new FormData(document.getElementById("filter-form"));
+            const params = new URLSearchParams(formData);
+            params.append("page", page);
+
+            let response = await fetch("/products?" + params.toString());
             let data = await response.json();
 
-            let chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML = "";
-            data.response.forEach(product => {
-                chatBox.innerHTML += `
-                    <div class="product">
-                        <input type="checkbox" value="${product.id}" onchange="toggleProduct(this)">
-                        <img src="${product.image_url}" width="120">
-                        <p><b>${product.productDisplayname}</b></p>
-                        <p>Price: ₹${product.price}</p>
-                        <p>Category: ${product.masterCategory}</p>
-                        <p>Subcategory: ${product.subCategory}</p>
+            let grid = document.getElementById("product-grid");
+            grid.innerHTML = "";
+            data.products.forEach(p => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <img src="${p.image_url}" alt="${p.productDisplayname}">
+                        <h4>${p.productDisplayname}</h4>
+                        <p>₹${p.price}</p>
+                        <p>${p.gender}, ${p.masterCategory}, ${p.subCategory}</p>
                     </div>
                 `;
             });
+
+            // Pagination
+            let pagination = document.getElementById("pagination");
+            pagination.innerHTML = `
+                <button onclick="loadProducts(${page-1})" ${page<=1?'disabled':''}>Prev</button>
+                <span>Page ${page}</span>
+                <button onclick="loadProducts(${page+1})">Next</button>
+            `;
         }
 
-        function toggleProduct(checkbox) {
-            let productId = parseInt(checkbox.value);
-            if (checkbox.checked) {
-                if (selectedProducts.length < 4) {
-                    selectedProducts.push(productId);
-                } else {
-                    alert("You can select up to 4 products only.");
-                    checkbox.checked = false;
-                }
-            } else {
-                selectedProducts = selectedProducts.filter(id => id !== productId);
-            }
-        }
+        document.getElementById("filter-form").addEventListener("submit", e => {
+            e.preventDefault();
+            loadProducts(1);
+        });
 
-        async function compareProducts() {
-            if (selectedProducts.length < 2) {
-                alert("Please select at least 2 products.");
-                return;
-            }
-
-            let response = await fetch("/compare", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({products: selectedProducts})
-            });
-            let data = await response.json();
-
-            document.getElementById("comparison-box").style.display = "block";
-            let resultsDiv = document.getElementById("comparison-results");
-            resultsDiv.innerHTML = "";
-
-            data.comparison.forEach(product => {
-                resultsDiv.innerHTML += `
-                    <div class="comparison-card">
-                        <img src="${product.image_url}" alt="${product.productDisplayname}">
-                        <p><b>${product.productDisplayname}</b></p>
-                        <p>Price: ₹${product.price}</p>
-                        <p>Category: ${product.masterCategory}</p>
-                        <p>Subcategory: ${product.subCategory}</p>
-                    </div>
-                `;
-            });
-        }
-
-        function closeComparison() {
-            document.getElementById("comparison-box").style.display = "none";
-        }
+        loadProducts();
     </script>
 </body>
 </html>
