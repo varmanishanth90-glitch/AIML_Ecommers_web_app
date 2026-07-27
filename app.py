@@ -34,10 +34,10 @@ def filters():
     fields = ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]
     filter_data = {}
     for field in fields:
-        cursor.execute(f"SELECT DISTINCT {field} FROM ecommerce_proj_data WHERE {field} IS NOT NULL")
+        cursor.execute(f"SELECT DISTINCT {field} FROM ecommerce_proj_data WHERE {field} IS NOT NULL AND {field} != ''")
         filter_data[field] = [row[0] for row in cursor.fetchall()]
 
-    cursor.execute("SELECT MIN(price), MAX(price) FROM ecommerce_proj_data")
+    cursor.execute("SELECT MIN(price), MAX(price) FROM ecommerce_proj_data WHERE price IS NOT NULL")
     min_price, max_price = cursor.fetchone()
     filter_data["price_range"] = {"min": min_price, "max": max_price}
 

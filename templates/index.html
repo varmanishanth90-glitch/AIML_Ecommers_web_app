@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Shopping Assistant Bot</title>
+    <title>E-Commerce App</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <!-- Filters Section -->
     <div class="filters">
         <form id="filter-form">
             <select name="gender" id="gender"></select>
@@ -20,20 +21,29 @@
         </form>
     </div>
 
+    <!-- Product Grid -->
     <div id="product-grid" class="grid"></div>
+
+    <!-- Pagination -->
     <div id="pagination"></div>
 
-    <!-- Comparison screen -->
+    <!-- Comparison Screen -->
     <div id="comparison-box" style="display:none;">
         <h3>🔍 Product Comparison</h3>
         <div id="comparison-results"></div>
         <button onclick="closeComparison()">Close</button>
     </div>
 
+    <!-- Compare Button -->
+    <div style="text-align:center; margin:20px;">
+        <button onclick="compareProducts()">Compare Selected</button>
+    </div>
+
     <script>
         let selectedProducts = [];
         let currentPage = 1;
 
+        // Load filters from backend
         async function loadFilters() {
             let response = await fetch("/filters");
             let data = await response.json();
@@ -52,6 +62,7 @@
             document.getElementById("max_price").max = data.price_range.max;
         }
 
+        // Load products with filters + pagination
         async function loadProducts(page=1) {
             currentPage = page;
             const formData = new FormData(document.getElementById("filter-form"));
@@ -83,6 +94,7 @@
             `;
         }
 
+        // Handle product selection
         function toggleProduct(checkbox) {
             let productId = parseInt(checkbox.value);
             if (checkbox.checked) {
@@ -97,6 +109,7 @@
             }
         }
 
+        // Compare selected products
         async function compareProducts() {
             if (selectedProducts.length < 2) {
                 alert("Please select at least 2 products.");
@@ -112,4 +125,39 @@
 
             document.getElementById("comparison-box").style.display = "block";
             let resultsDiv = document.getElementById("comparison-results");
-            resultsDiv.innerHTML
+            resultsDiv.innerHTML = "";
+
+            data.comparison.forEach(product => {
+                resultsDiv.innerHTML += `
+                    <div class="comparison-card">
+                        <img src="${product.image_url}" alt="${product.productDisplayname}">
+                        <p><b>${product.productDisplayname}</b></p>
+                        <p>Price: ₹${product.price}</p>
+                        <p>Category: ${product.masterCategory}</p>
+                        <p>Subcategory: ${product.subCategory}</p>
+                        <p>Gender: ${product.gender}</p>
+                        <p>Colour: ${product.baseCOlour}</p>
+                        <p>Season: ${product.season}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function closeComparison() {
+            document.getElementById("comparison-box").style.display = "none";
+        }
+
+        // Initialize page
+        window.onload = async () => {
+            await loadFilters();
+            await loadProducts(1);
+        };
+
+        // Apply filters
+        document.getElementById("filter-form").addEventListener("submit", e => {
+            e.preventDefault();
+            loadProducts(1);
+        });
+    </script>
+</body>
+</html>
