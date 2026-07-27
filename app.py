@@ -44,17 +44,15 @@ def chat():
         FROM ecommerce_proj_data
         WHERE productDisplayname LIKE %s OR baseCOlour LIKE %s OR gender LIKE %s
           OR masterCategory LIKE %s OR subCategory LIKE %s
-
-        limit 100
+        LIMIT 100
     """
-    
     cursor.execute(query, (
-    f"%{user_message}%", 
-    f"%{user_message}%", 
-    f"%{user_message}%", 
-    f"%{user_message}%", 
-    f"%{user_message}%"
-))
+        f"%{user_message}%", 
+        f"%{user_message}%", 
+        f"%{user_message}%", 
+        f"%{user_message}%", 
+        f"%{user_message}%"
+    ))
     products = cursor.fetchall()
 
     results = []
@@ -68,6 +66,38 @@ def chat():
         results.append(product)
 
     return jsonify({"response": results})
+
+# New route for product comparison
+@app.route("/compare", methods=["POST"])
+def compare():
+    product_ids = request.json.get("products", [])
+    if not product_ids or len(product_ids) < 2:
+        return jsonify({"error": "Please select at least two products"}), 400
+
+    cursor = conn.cursor(dictionary=True)
+    format_strings = ','.join(['%s'] * len(product_ids))
+    query = f"""
+        SELECT id, productDisplayname, price, baseCOlour, gender, season, masterCategory, subCategory
+        FROM ecommerce_proj_data
+        WHERE id IN ({format_strings})
+    """
+    cursor.execute(query, tuple(product_ids))
+    products = cursor.fetchall()
+
+    comparison = []
+    if len(products) == 2:
+        p1, p2 = products
+        comparison.append({
+            "product1": p1["productDisplayname"],
+            "product2": p2["productDisplayname"],
+            "price_difference": abs(p1["price"] - p2["price"]),
+            "same_category": p1["masterCategory"] == p2["masterCategory"],
+            "same_colour": p1["baseCOlour"] == p2["baseCOlour"],
+            "same_gender": p1["gender"] == p2["gender"],
+            "season_match": p1["season"] == p2["season"]
+        })
+
+    return jsonify({"comparison": comparison})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
