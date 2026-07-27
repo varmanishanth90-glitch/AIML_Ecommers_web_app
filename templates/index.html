@@ -19,6 +19,7 @@
         <div id="input-box">
             <input type="text" id="user-input" placeholder="Ask about products...">
             <button onclick="sendMessage()">Send</button>
+            <button onclick="compareProducts()">Compare Selected</button>
         </div>
     </div>
 
@@ -39,26 +40,37 @@
             data.response.forEach(product => {
                 chatBox.innerHTML += `
                     <div class="product">
+                        <input type="checkbox" value="${product.id}" onchange="toggleProduct(this)">
                         <img src="${product.image_url}" width="120">
                         <p><b>${product.productDisplayname}</b></p>
                         <p>Price: ₹${product.price}</p>
-                        <p>${product.baseCOlour}, ${product.gender}, ${product.season}</p>
-                        <button class="compare-btn" onclick="selectProduct(${product.id})">Compare</button>
+                        <p>Category: ${product.masterCategory}</p>
+                        <p>Subcategory: ${product.subCategory}</p>
                     </div>
                 `;
             });
         }
 
-        function selectProduct(productId) {
-            if (!selectedProducts.includes(productId)) {
-                selectedProducts.push(productId);
-            }
-            if (selectedProducts.length >= 2) {
-                compareProducts();
+        function toggleProduct(checkbox) {
+            let productId = parseInt(checkbox.value);
+            if (checkbox.checked) {
+                if (selectedProducts.length < 4) {
+                    selectedProducts.push(productId);
+                } else {
+                    alert("You can select up to 4 products only.");
+                    checkbox.checked = false;
+                }
+            } else {
+                selectedProducts = selectedProducts.filter(id => id !== productId);
             }
         }
 
         async function compareProducts() {
+            if (selectedProducts.length < 2) {
+                alert("Please select at least 2 products.");
+                return;
+            }
+
             let response = await fetch("/compare", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -81,8 +93,6 @@
                     </div>
                 `;
             });
-
-            selectedProducts = [];
         }
 
         function closeComparison() {

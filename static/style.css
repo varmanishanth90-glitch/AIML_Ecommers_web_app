@@ -63,20 +63,6 @@ button:hover {
     background: #0056b3;
 }
 
-.compare-btn {
-    margin-top: 5px;
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.compare-btn:hover {
-    background: #1e7e34;
-}
-
 #comparison-box {
     position: fixed;
     top: 10%;
@@ -91,11 +77,3 @@ button:hover {
 
 #comparison-results {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.comparison-card {
-    flex: 1;
-    min-width: 200px;
-    border

@@ -68,6 +68,8 @@ def compare():
     product_ids = request.json.get("products", [])
     if not product_ids or len(product_ids) < 2:
         return jsonify({"error": "Please select at least two products"}), 400
+    if len(product_ids) > 4:
+        return jsonify({"error": "You can compare up to 4 products only"}), 400
 
     cursor = conn.cursor(dictionary=True)
     format_strings = ','.join(['%s'] * len(product_ids))
@@ -79,7 +81,6 @@ def compare():
     cursor.execute(query, tuple(product_ids))
     products = cursor.fetchall()
 
-    # Add image URLs
     for p in products:
         p["image_url"] = s3.generate_presigned_url(
             'get_object',
