@@ -3,73 +3,18 @@
 <head>
     <title>Shopping Assistant Bot</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        /* Full screen layout */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            background: #f4f4f4;
-        }
-
-        h2 {
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        #chat-box {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #fff;
-            border: 1px solid #ddd;
-        }
-
-        .product {
-            border-bottom: 1px solid #ddd;
-            padding: 10px;
-        }
-
-        #input-box {
-            display: flex;
-            padding: 10px;
-            background: #eee;
-        }
-
-        #user-input {
-            flex: 1;
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-
-        .compare-btn {
-            margin-top: 5px;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
     <div class="chat-container">
         <h2>🛍 Shopping Assistant Bot</h2>
         <div id="chat-box"></div>
+
+        <!-- Comparison screen (hidden initially) -->
+        <div id="comparison-box" style="display:none;">
+            <h3>🔍 Product Comparison</h3>
+            <div id="comparison-results"></div>
+            <button onclick="closeComparison()">Close</button>
+        </div>
 
         <div id="input-box">
             <input type="text" id="user-input" placeholder="Ask about products...">
@@ -121,14 +66,21 @@
             });
             let data = await response.json();
 
-            let chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML += `
-                <div class="product">
-                    <h3>🔍 Comparison Result</h3>
-                    <p>${JSON.stringify(data.comparison)}</p>
-                </div>
+            document.getElementById("comparison-box").style.display = "block";
+            document.getElementById("comparison-results").innerHTML = `
+                <p><b>${data.comparison[0].product1}</b> vs <b>${data.comparison[0].product2}</b></p>
+                <p>Price Difference: ₹${data.comparison[0].price_difference}</p>
+                <p>Same Category: ${data.comparison[0].same_category}</p>
+                <p>Same Colour: ${data.comparison[0].same_colour}</p>
+                <p>Same Gender: ${data.comparison[0].same_gender}</p>
+                <p>Season Match: ${data.comparison[0].season_match}</p>
             `;
-            selectedProducts = []; // reset after comparison
+
+            selectedProducts = [];
+        }
+
+        function closeComparison() {
+            document.getElementById("comparison-box").style.display = "none";
         }
     </script>
 </body>

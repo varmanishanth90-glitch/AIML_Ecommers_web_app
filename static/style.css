@@ -1,5 +1,4 @@
-/* Reset and base styles */
-body, html {
+html, body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -7,7 +6,6 @@ body, html {
     background: #f4f4f4;
 }
 
-/* Full screen chat container */
 .chat-container {
     display: flex;
     flex-direction: column;
@@ -18,7 +16,11 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Chat box fills available space */
+h2 {
+    text-align: center;
+    margin: 10px 0;
+}
+
 #chat-box {
     flex: 1;
     overflow-y: auto;
@@ -28,13 +30,11 @@ body, html {
     background: #fff;
 }
 
-/* Product listing style */
 .product {
     border-bottom: 1px solid #ddd;
     padding: 10px;
 }
 
-/* Input area fixed at bottom */
 #input-box {
     display: flex;
     padding: 10px;
@@ -61,4 +61,30 @@ button {
 
 button:hover {
     background: #0056b3;
+}
+
+.compare-btn {
+    margin-top: 5px;
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.compare-btn:hover {
+    background: #1e7e34;
+}
+
+#comparison-box {
+    position: fixed;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    padding: 20px;
+    z-index: 1000;
 }
