@@ -46,7 +46,7 @@ def filters():
 @app.route("/products", methods=["GET"])
 def products():
     page = int(request.args.get("page", 1))
-    per_page = 16
+    per_page = 20   # ✅ Show 20 products per page
     offset = (page - 1) * per_page
 
     filters = []
