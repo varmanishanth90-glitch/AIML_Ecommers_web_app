@@ -28,14 +28,27 @@ conn = mysql.connector.connect(
 def home():
     return render_template("index.html")
 
+@app.route("/filters", methods=["GET"])
+def filters():
+    cursor = conn.cursor()
+    fields = ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]
+    filter_data = {}
+    for field in fields:
+        cursor.execute(f"SELECT DISTINCT {field} FROM ecommerce_proj_data WHERE {field} IS NOT NULL")
+        filter_data[field] = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute("SELECT MIN(price), MAX(price) FROM ecommerce_proj_data")
+    min_price, max_price = cursor.fetchone()
+    filter_data["price_range"] = {"min": min_price, "max": max_price}
+
+    return jsonify(filter_data)
+
 @app.route("/products", methods=["GET"])
 def products():
-    # Pagination
     page = int(request.args.get("page", 1))
     per_page = 16
     offset = (page - 1) * per_page
 
-    # Filters
     filters = []
     values = []
     for field in ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]:
@@ -44,7 +57,6 @@ def products():
             filters.append(f"{field} = %s")
             values.append(val)
 
-    # Price filter
     min_price = request.args.get("min_price")
     max_price = request.args.get("max_price")
     if min_price:
@@ -66,7 +78,6 @@ def products():
     cursor.execute(query, tuple(values + [per_page, offset]))
     products = cursor.fetchall()
 
-    # Add image URLs
     for product in products:
         product["image_url"] = s3.generate_presigned_url(
             'get_object',
@@ -75,6 +86,33 @@ def products():
         )
 
     return jsonify({"products": products})
+
+@app.route("/compare", methods=["POST"])
+def compare():
+    product_ids = request.json.get("products", [])
+    if not product_ids or len(product_ids) < 2:
+        return jsonify({"error": "Please select at least two products"}), 400
+    if len(product_ids) > 4:
+        return jsonify({"error": "You can compare up to 4 products only"}), 400
+
+    cursor = conn.cursor(dictionary=True)
+    format_strings = ','.join(['%s'] * len(product_ids))
+    query = f"""
+        SELECT id, productDisplayname, price, gender, masterCategory, subCategory, ArticleType, baseCOlour, season
+        FROM ecommerce_proj_data
+        WHERE id IN ({format_strings})
+    """
+    cursor.execute(query, tuple(product_ids))
+    products = cursor.fetchall()
+
+    for p in products:
+        p["image_url"] = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.jpg"},
+            ExpiresIn=3600
+        )
+
+    return jsonify({"comparison": products})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
