@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 
-# AWS S3 client (credentials from environment variables)
+# AWS S3 client
 s3 = boto3.client(
     's3',
     aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
@@ -15,17 +15,12 @@ s3 = boto3.client(
 
 BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", "ecommersfashion-images-bucket")
 
-# MySQL connection (RDS credentials from environment variables)
-db_host = os.environ.get("RDS_HOST", "awsrdsdatabase.cwhsqi0qgwid.us-east-1.rds.amazonaws.com")
-db_user = os.environ.get("RDS_USER", "admin")
-db_password = os.environ.get("RDS_PASSWORD", "Eval4545")
-db_name = os.environ.get("RDS_DB", "SQLRDSAWS")
-
+# MySQL connection
 conn = mysql.connector.connect(
-    host=db_host,
-    user=db_user,
-    password=db_password,
-    database=db_name,
+    host=os.environ.get("RDS_HOST", "awsrdsdatabase.cwhsqi0qgwid.us-east-1.rds.amazonaws.com"),
+    user=os.environ.get("RDS_USER", "admin"),
+    password=os.environ.get("RDS_PASSWORD", "Eval4545"),
+    database=os.environ.get("RDS_DB", "SQLRDSAWS"),
     use_pure=True
 )
 
@@ -67,7 +62,7 @@ def chat():
 
     return jsonify({"response": results})
 
-# New route for product comparison
+# 🔍 Product comparison route
 @app.route("/compare", methods=["POST"])
 def compare():
     product_ids = request.json.get("products", [])
@@ -84,20 +79,15 @@ def compare():
     cursor.execute(query, tuple(product_ids))
     products = cursor.fetchall()
 
-    comparison = []
-    if len(products) == 2:
-        p1, p2 = products
-        comparison.append({
-            "product1": p1["productDisplayname"],
-            "product2": p2["productDisplayname"],
-            "price_difference": abs(p1["price"] - p2["price"]),
-            "same_category": p1["masterCategory"] == p2["masterCategory"],
-            "same_colour": p1["baseCOlour"] == p2["baseCOlour"],
-            "same_gender": p1["gender"] == p2["gender"],
-            "season_match": p1["season"] == p2["season"]
-        })
+    # Add image URLs
+    for p in products:
+        p["image_url"] = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.jpg"},
+            ExpiresIn=3600
+        )
 
-    return jsonify({"comparison": comparison})
+    return jsonify({"comparison": products})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

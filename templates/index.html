@@ -9,7 +9,7 @@
         <h2>🛍 Shopping Assistant Bot</h2>
         <div id="chat-box"></div>
 
-        <!-- Comparison screen (hidden initially) -->
+        <!-- Comparison screen -->
         <div id="comparison-box" style="display:none;">
             <h3>🔍 Product Comparison</h3>
             <div id="comparison-results"></div>
@@ -53,7 +53,7 @@
             if (!selectedProducts.includes(productId)) {
                 selectedProducts.push(productId);
             }
-            if (selectedProducts.length === 2) {
+            if (selectedProducts.length >= 2) {
                 compareProducts();
             }
         }
@@ -67,14 +67,20 @@
             let data = await response.json();
 
             document.getElementById("comparison-box").style.display = "block";
-            document.getElementById("comparison-results").innerHTML = `
-                <p><b>${data.comparison[0].product1}</b> vs <b>${data.comparison[0].product2}</b></p>
-                <p>Price Difference: ₹${data.comparison[0].price_difference}</p>
-                <p>Same Category: ${data.comparison[0].same_category}</p>
-                <p>Same Colour: ${data.comparison[0].same_colour}</p>
-                <p>Same Gender: ${data.comparison[0].same_gender}</p>
-                <p>Season Match: ${data.comparison[0].season_match}</p>
-            `;
+            let resultsDiv = document.getElementById("comparison-results");
+            resultsDiv.innerHTML = "";
+
+            data.comparison.forEach(product => {
+                resultsDiv.innerHTML += `
+                    <div class="comparison-card">
+                        <img src="${product.image_url}" alt="${product.productDisplayname}">
+                        <p><b>${product.productDisplayname}</b></p>
+                        <p>Price: ₹${product.price}</p>
+                        <p>Category: ${product.masterCategory}</p>
+                        <p>Subcategory: ${product.subCategory}</p>
+                    </div>
+                `;
+            });
 
             selectedProducts = [];
         }

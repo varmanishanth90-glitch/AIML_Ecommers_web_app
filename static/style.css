@@ -88,3 +88,14 @@ button:hover {
     padding: 20px;
     z-index: 1000;
 }
+
+#comparison-results {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.comparison-card {
+    flex: 1;
+    min-width: 200px;
+    border
