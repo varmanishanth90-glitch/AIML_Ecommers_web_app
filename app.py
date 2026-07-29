@@ -45,8 +45,9 @@ def filters():
 
 @app.route("/products", methods=["GET"])
 def products():
+    # ✅ Always show 16 products per page
     page = int(request.args.get("page", 1))
-    per_page = 20   # ✅ Show 20 products per page
+    per_page = 16
     offset = (page - 1) * per_page
 
     filters = []
@@ -85,7 +86,7 @@ def products():
             ExpiresIn=3600
         )
 
-    return jsonify({"products": products})
+    return jsonify({"products": products, "page": page})
 
 @app.route("/compare", methods=["POST"])
 def compare():

@@ -1,37 +1,84 @@
+/* Global Styles */
 body {
     font-family: Arial, sans-serif;
     background: #f4f4f4;
     margin: 0;
     padding: 0;
+    color: #333;
 }
 
+/* Filters Section */
 .filters {
     background: #fff;
-    padding: 10px;
+    padding: 15px;
     border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
+.filters select,
+.filters input,
+.filters button {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.filters button {
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.filters button:hover {
+    background: #0056b3;
+}
+
+/* Product Grid */
 .grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* 4 per row = 16 per page */
     gap: 20px;
     padding: 20px;
 }
 
+/* Product Card */
 .product-card {
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 6px;
-    padding: 10px;
+    padding: 15px;
     text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .product-card img {
     max-width: 100%;
-    height: 150px;
+    height: 160px;
     object-fit: contain;
+    margin-bottom: 10px;
 }
 
+.product-card h4 {
+    font-size: 16px;
+    margin: 8px 0;
+    color: #222;
+}
+
+.product-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Pagination */
 #pagination {
     text-align: center;
     padding: 20px;
@@ -39,5 +86,47 @@ body {
 
 #pagination button {
     margin: 0 5px;
-    padding: 8px 12px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#pagination button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+#pagination button:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+/* Comparison Box */
+#comparison-box {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 6px;
+}
+
+.comparison-card {
+    display: inline-block;
+    width: 200px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    background: #fafafa;
+}
+
+.comparison-card img {
+    max-width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 8px;
 }

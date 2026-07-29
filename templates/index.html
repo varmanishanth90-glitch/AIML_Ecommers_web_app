@@ -42,6 +42,7 @@
     <script>
         let selectedProducts = [];
         let currentPage = 1;
+        const perPage = 16; // ✅ Match backend
 
         // Load filters from backend
         async function loadFilters() {
@@ -86,11 +87,12 @@
                 `;
             });
 
+            // Pagination controls
             let pagination = document.getElementById("pagination");
             pagination.innerHTML = `
                 <button onclick="loadProducts(${page-1})" ${page<=1?'disabled':''}>Prev</button>
                 <span>Page ${page}</span>
-                <button onclick="loadProducts(${page+1})">Next</button>
+                <button onclick="loadProducts(${page+1})" ${data.products.length < perPage ? 'disabled' : ''}>Next</button>
             `;
         }
 
