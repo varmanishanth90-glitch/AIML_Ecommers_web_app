@@ -1,4 +1,5 @@
 flask
 boto3
 mysql-connector-python
+Pillow
 gunicorn

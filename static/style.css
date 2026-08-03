@@ -74,10 +74,7 @@ main {
 .hero-button,
 .primary-button,
 .filters button,
-.top-actions button,
-.try-on-card-button,
-.exit-tryon-button,
-.try-on-panel button {
+.top-actions button {
     border: none;
     border-radius: 999px;
     padding: 12px 22px;
@@ -99,10 +96,7 @@ main {
 .hero-button:hover,
 .primary-button:hover,
 .filters button:hover,
-.top-actions button:hover,
-.try-on-card-button:hover,
-.exit-tryon-button:hover,
-.try-on-panel button:hover {
+.top-actions button:hover {
     opacity: 0.95;
 }
 
@@ -165,15 +159,6 @@ main {
     color: #fff;
 }
 
-.tryon-note {
-    background: #fff8e8;
-    color: #5b4636;
-    padding: 16px 22px;
-    border-left: 5px solid #f0c36d;
-    border-radius: 14px;
-    margin-bottom: 24px;
-    font-size: 0.98rem;
-}
 
 .top-actions {
     display: flex;
@@ -203,6 +188,142 @@ main {
 
     .hero-actions {
         justify-content: flex-start;
+    }
+}
+
+.discovery-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.discovery-card {
+    background: #ffffff;
+    border: 1px solid rgba(16, 42, 67, 0.08);
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 18px 40px rgba(15, 75, 129, 0.08);
+}
+
+.discovery-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.2rem;
+}
+
+.discovery-card p {
+    margin: 0 0 16px;
+    color: #334e68;
+}
+
+.discovery-card .small-text {
+    font-size: 0.9rem;
+    color: #627d98;
+}
+
+.discovery-card input[type="file"] {
+    width: 100%;
+    border: 1px solid rgba(16, 42, 67, 0.14);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #f8fbff;
+    color: #102a43;
+    margin-bottom: 12px;
+}
+
+.comparison-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.comparison-card {
+    background: #f9fbff;
+    border: 1px solid rgba(15, 75, 129, 0.08);
+    border-radius: 18px;
+    padding: 16px;
+    text-align: center;
+}
+
+.comparison-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 14px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.modal-subtitle {
+    margin: 4px 0 0;
+    color: #627d98;
+    font-size: 0.95rem;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.35rem;
+    cursor: pointer;
+    color: #102a43;
+}
+
+.modal-info {
+    margin-top: 14px;
+    color: #334e68;
+    font-weight: 600;
+}
+
+.style-match-results {
+    display: grid;
+    gap: 20px;
+    margin-top: 18px;
+}
+
+.style-section {
+    border-top: 1px solid rgba(15, 75, 129, 0.1);
+    padding-top: 18px;
+}
+
+.style-section h4 {
+    margin: 0 0 14px;
+    color: #102a43;
+}
+
+.product-card-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.secondary-button {
+    background: transparent;
+    border: 1px solid rgba(15, 75, 129, 0.18);
+    color: #0f4c81;
+}
+
+.style-section .comparison-results {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+@media (max-width: 600px) {
+    .hero-banner,
+    .discovery-panel,
+    .filters,
+    .comparison-results,
+    .style-match-results {
+        width: 100%;
     }
 }
 
@@ -254,76 +375,6 @@ main {
     color: #486581;
 }
 
-.try-on-card-button {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border: none;
-    border-radius: 999px;
-    background: #0f4c81;
-    color: #fff;
-    cursor: pointer;
-    width: 100%;
-    font-weight: 700;
-}
-
-.try-on-card-button:hover {
-    background: #0a3559;
-}
-
-/* Try-On Panel */
-.try-on-panel {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 900px;
-}
-
-.try-on-panel h3 {
-    margin-top: 0;
-}
-
-.try-on-panel input[type="file"] {
-    display: block;
-    margin-bottom: 12px;
-}
-
-.try-on-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 12px;
-    align-items: center;
-}
-
-.try-on-controls label {
-    display: flex;
-    flex-direction: column;
-    font-size: 14px;
-    color: #333;
-}
-
-.try-on-controls input[type="range"] {
-    width: 200px;
-    margin-top: 6px;
-}
-
-#tryon-canvas {
-    width: 100%;
-    max-width: 900px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    margin-top: 12px;
-    background: #fff;
-}
-
-.tryon-note-small {
-    margin: 8px 0 12px;
-    font-size: 13px;
-    color: #4e5f7d;
-}
-
 .modal {
     position: fixed;
     inset: 0;
@@ -344,7 +395,7 @@ main {
     position: relative;
 }
 
-.modal-content.tryon-modal-content {
+.modal-content.comparison-modal-content {
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -366,186 +417,7 @@ main {
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
 }
 
-.tryon-details {
-    display: flex;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
-}
 
-.tryon-product-card {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex: 1 1 320px;
-}
-
-.tryon-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 18px;
-    margin-bottom: 20px;
-}
-
-.tryon-modal-subtitle {
-    margin: 6px 0 0;
-    color: #5b667a;
-    font-size: 14px;
-}
-
-.tryon-modal-body {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.tryon-preview-column,
-.tryon-info-column {
-    flex: 1 1 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.tryon-preview-title {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-
-.tryon-preview-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 16px;
-    border: 1px solid #d8e0ea;
-    border-radius: 12px;
-    padding: 16px;
-    background: #fbfcfe;
-}
-
-.tryon-placeholder {
-    border: 2px dashed #c1c8d4;
-    border-radius: 16px;
-    padding: 40px;
-    text-align: center;
-    color: #6b7280;
-    background: #f8fafc;
-}
-
-.preview-badge {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    background: rgba(255,255,255,0.92);
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    color: #0f172a;
-    box-shadow: 0 8px 20px rgba(15,23,42,0.08);
-}
-
-.tryon-preview-frame {
-    position: relative;
-    width: 100%;
-    min-height: 340px;
-    background: #fff;
-    border: 1px solid #c1c8d4;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
-}
-
-.tryon-preview-frame canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.exit-tryon-button {
-    align-self: flex-start;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 999px;
-    background: #111827;
-    color: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 6px;
-    transition: background 0.2s ease;
-}
-
-.exit-tryon-button:hover {
-    background: #0f172a;
-}
-
-.tryon-upload-card {
-    flex: 1 1 260px;
-    background: #f7f9fc;
-    border: 1px dashed #c1c8d4;
-    border-radius: 10px;
-    padding: 16px;
-}
-
-.tryon-upload-card input[type="file"] {
-    display: block;
-    margin-top: 12px;
-}
-
-.tryon-preview-label {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #5b667a;
-}
-
-.try-on-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 16px;
-    align-items: center;
-}
-
-.try-on-controls label {
-    display: flex;
-    flex-direction: column;
-    font-size: 14px;
-    color: #333;
-}
-
-.try-on-controls input[type="range"] {
-    width: 220px;
-    margin-top: 8px;
-}
-
-.try-on-card-button {
-    margin-top: 12px;
-    padding: 10px 14px;
-    border: none;
-    border-radius: 6px;
-    background: #28a745;
-    color: #fff;
-    cursor: pointer;
-}
-
-.try-on-card-button:hover {
-    background: #218838;
-}
-
-.try-on-panel button {
-    margin-top: 12px;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 4px;
-    background: #007bff;
-    color: #fff;
-    cursor: pointer;
-}
-
-.try-on-panel button:hover {
-    background: #0056b3;
-}
 
 /* Pagination */
 #pagination {
@@ -573,15 +445,6 @@ main {
 
 .top-actions button:hover {
     background: #0056b3;
-}
-
-.tryon-note {
-    background: #eaf4ff;
-    color: #0f4c81;
-    padding: 14px 20px;
-    margin: 0;
-    font-size: 14px;
-    border-left: 4px solid #007bff;
 }
 
 #pagination button {

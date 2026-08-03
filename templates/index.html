@@ -9,7 +9,7 @@
         <section class="hero-banner">
             <div class="hero-copy">
                 <h1>Discover Your Perfect Fit</h1>
-                <p>Browse a curated collection, filter by style and color, then preview your favorite look with live try-on.</p>
+                <p>Browse a curated collection, filter by style and color, then preview your favorite look.</p>
             </div>
             <div class="hero-actions">
                 <button id="compare-button" type="button" class="hero-button" onclick="compareProducts()">Compare Selected</button>
@@ -20,6 +20,22 @@
                 <div id="selected-products-list" class="selected-products-list"></div>
             </div>
         </section>
+
+        <div class="discovery-panel">
+            <div class="discovery-card">
+                <h3>Visual Search</h3>
+                <p>Upload a photo and find similar products by dominant color and style.</p>
+                <form id="image-search-form" onsubmit="event.preventDefault(); imageSearch();">
+                    <input type="file" id="image-search-input" accept="image/*">
+                    <button type="submit" class="primary-button">Search by Image</button>
+                </form>
+            </div>
+            <div class="discovery-card">
+                <h3>Personal Stylist</h3>
+                <p>Click Style Match on any product to get outfit suggestions that pair well with it.</p>
+                <p class="small-text">Try selecting a top or bottom and then use the button below.</p>
+            </div>
+        </div>
 
         <div class="filters">
         <form id="filter-form">
@@ -47,9 +63,7 @@
         </form>
     </div>
 
-    <div class="tryon-note">
-        <strong>Try-On Guide:</strong> Select a product, click the <em>Try On</em> button, upload your reference photo in the popup, then see the selected product replace it instantly.
-    </div>
+
 
     <!-- Product Grid -->
     <div id="product-grid" class="grid"></div>
@@ -57,62 +71,46 @@
     <!-- Pagination -->
     <div id="pagination"></div>
 
-    <!-- Virtual Try-On Popup -->
-    <div id="tryon-modal" class="modal" style="display:none;">
-        <div class="modal-content tryon-modal-content">
-            <div class="tryon-modal-header">
-                <div>
-                    <h3>Live Apparel Fitting</h3>
-                    <p class="tryon-modal-subtitle">Upload a photo to begin, then see the selected product replace it instantly.</p>
-                </div>
-                <button class="modal-close" type="button" onclick="closeTryOnModal()">✕</button>
-            </div>
-            <div class="tryon-modal-body">
-                <div class="tryon-preview-column">
-                    <div class="tryon-preview-title">Selected Product Preview</div>
-                    <div class="tryon-preview-panel" id="tryon-preview-panel" style="display:none;">
-                        <div class="tryon-preview-frame">
-                            <canvas id="tryon-canvas"></canvas>
-                            <div class="preview-badge">Preview</div>
-                        </div>
-                        <div class="tryon-preview-label">Reference image replaced by the selected product.</div>
-                        <button class="exit-tryon-button" type="button" onclick="closeTryOnModal()">Exit Try On</button>
-                    </div>
-                    <div class="tryon-placeholder" id="tryon-placeholder">
-                        <p>Select a product and upload your reference image to begin live fit.</p>
-                    </div>
-                </div>
-                <div class="tryon-info-column">
-                    <div class="tryon-product-card">
-                        <img id="modal-product-image" src="" alt="Product image" loading="lazy" decoding="async">
-                        <div>
-                            <h4 id="modal-product-name"></h4>
-                            <p id="modal-product-price"></p>
-                            <p id="modal-product-category"></p>
-                            <p id="modal-product-attributes"></p>
-                        </div>
-                    </div>
-                    <div class="tryon-upload-card">
-                        <p>Choose a reference image to start the try-on preview.</p>
-                        <p class="tryon-note-small">Tip: full-body or torso images work best.</p>
-                        <input type="file" id="reference-image-input" accept="image/*">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Comparison Modal -->
     <div id="comparison-box" class="modal" style="display:none;">
-        <div class="modal-content tryon-modal-content comparison-modal-content">
-            <div class="tryon-modal-header">
+        <div class="modal-content comparison-modal-content">
+            <div class="modal-header">
                 <div>
                     <h3>Product Comparison</h3>
-                    <p class="tryon-modal-subtitle">Compare your selected items side by side.</p>
+                    <p class="modal-subtitle">Compare your selected items side by side.</p>
                 </div>
                 <button class="modal-close" type="button" onclick="closeComparison()">✕</button>
             </div>
             <div id="comparison-results" class="comparison-results"></div>
+        </div>
+    </div>
+
+    <!-- Image Search Modal -->
+    <div id="image-search-modal" class="modal" style="display:none;">
+        <div class="modal-content comparison-modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3>Image Search Results</h3>
+                    <p class="modal-subtitle">Products matched by color and style.</p>
+                </div>
+                <button class="modal-close" type="button" onclick="closeImageSearchModal()">✕</button>
+            </div>
+            <div id="image-search-results" class="comparison-results"></div>
+            <div id="image-search-info" class="modal-info"></div>
+        </div>
+    </div>
+
+    <!-- Style Match Modal -->
+    <div id="style-match-modal" class="modal" style="display:none;">
+        <div class="modal-content comparison-modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3>Style Match Suggestions</h3>
+                    <p class="modal-subtitle">Complete the look with complementary items.</p>
+                </div>
+                <button class="modal-close" type="button" onclick="closeStyleMatchModal()">✕</button>
+            </div>
+            <div id="style-match-results" class="style-match-results"></div>
         </div>
     </div>
     </main>
@@ -121,10 +119,8 @@
         let selectedProducts = [];
         let selectedProductsData = {};
         let productMap = {};
-        let activeTryOnProductId = null;
         let currentPage = 1;
         const perPage = 16; // ✅ Match backend
-        let productOverlayImage = null;
 
         // Load filters from backend
         async function loadFilters() {
@@ -205,7 +201,9 @@
                         <h4>${p.productDisplayname}</h4>
                         <p>₹${p.price}</p>
                         <p>${p.gender}, ${p.masterCategory}, ${p.subCategory}</p>
-                        <button class="try-on-card-button" type="button" onclick="openTryOnModal(${p.id})">Try On</button>
+                        <div class="product-card-actions">
+                            <button type="button" class="secondary-button" onclick="styleMatch(${p.id})">Style Match</button>
+                        </div>
                     </div>
                 `;
             });
@@ -238,71 +236,6 @@
                 delete selectedProductsData[productId];
             }
             updateSelectionState();
-        }
-
-        function openTryOnModal(productId) {
-            const product = productMap[productId];
-            if (!product) return;
-
-            activeTryOnProductId = productId;
-            document.getElementById("modal-product-image").src = product.image_url;
-            document.getElementById("modal-product-name").textContent = product.productDisplayname;
-            document.getElementById("modal-product-price").textContent = `Price: ₹${product.price}`;
-            document.getElementById("modal-product-category").textContent = `${product.gender} · ${product.masterCategory} · ${product.subCategory}`;
-            document.getElementById("modal-product-attributes").textContent = `Type: ${product.ArticleType}, Colour: ${product.baseCOlour}, Season: ${product.season}`;
-            document.getElementById("reference-image-input").value = "";
-            document.getElementById("tryon-preview-panel").style.display = "none";
-            document.getElementById("tryon-canvas").style.display = "none";
-            document.getElementById("tryon-placeholder").style.display = "block";
-            productOverlayImage = null;
-            document.getElementById("tryon-modal").style.display = "flex";
-        }
-
-        function closeTryOnModal() {
-            document.getElementById("tryon-modal").style.display = "none";
-        }
-
-        function getTryOnProduct() {
-            return activeTryOnProductId ? productMap[activeTryOnProductId] : null;
-        }
-
-        function drawTryOn() {
-            const canvas = document.getElementById("tryon-canvas");
-            if (!productOverlayImage) {
-                return;
-            }
-
-            const ctx = canvas.getContext("2d");
-            const maxCanvasWidth = 960;
-            const imageScale = Math.min(1, maxCanvasWidth / productOverlayImage.naturalWidth);
-            canvas.width = Math.round(productOverlayImage.naturalWidth * imageScale);
-            canvas.height = Math.round(productOverlayImage.naturalHeight * imageScale);
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(productOverlayImage, 0, 0, canvas.width, canvas.height);
-        }
-
-        function handleReferenceImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file || !activeTryOnProductId) return;
-
-            const product = productMap[activeTryOnProductId];
-            if (!product || !product.image_url) {
-                alert("Unable to find the selected product image. Please try a different item.");
-                return;
-            }
-
-            productOverlayImage = new Image();
-            productOverlayImage.onload = () => {
-                document.getElementById("tryon-placeholder").style.display = "none";
-                document.getElementById("tryon-preview-panel").style.display = "block";
-                document.getElementById("tryon-canvas").style.display = "block";
-                drawTryOn();
-            };
-            productOverlayImage.onerror = () => {
-                alert("Failed to load product preview image. Please try another product or refresh the page.");
-            };
-            productOverlayImage.src = product.image_url;
         }
 
         function clearSelectedProducts() {
@@ -354,9 +287,103 @@
             document.getElementById("comparison-box").style.display = "none";
         }
 
-        document.getElementById("min_price").addEventListener("input", updatePriceValue);
-        document.getElementById("max_price").addEventListener("input", updatePriceValue);
-        document.getElementById("reference-image-input").addEventListener("change", handleReferenceImageUpload);
+        function imageSearch() {
+            const input = document.getElementById("image-search-input");
+            if (!input.files || !input.files[0]) {
+                alert("Please select an image to search.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', input.files[0]);
+
+            fetch('/image-search', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                const results = document.getElementById('image-search-results');
+                const info = document.getElementById('image-search-info');
+                results.innerHTML = '';
+                info.textContent = `Dominant color matched: ${data.query_color}`;
+                data.results.forEach(product => {
+                    results.innerHTML += `
+                        <div class="comparison-card">
+                            <img src="${product.image_url}" alt="${product.productDisplayname}">
+                            <p><b>${product.productDisplayname}</b></p>
+                            <p>₹${product.price}</p>
+                            <p>${product.masterCategory} · ${product.subCategory}</p>
+                            <p>Colour: ${product.baseCOlour}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('image-search-modal').style.display = 'flex';
+            })
+            .catch(() => alert('Image search failed.'));
+        }
+
+        function closeImageSearchModal() {
+            document.getElementById('image-search-modal').style.display = 'none';
+        }
+
+        function styleMatch(productId) {
+            fetch(`/style-match?product_id=${productId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                const results = document.getElementById('style-match-results');
+                results.innerHTML = '';
+
+                const renderSection = (title, items) => {
+                    if (!items || items.length === 0) return '';
+                    let html = `<div class="style-section"><h4>${title}</h4><div class="comparison-results">`;
+                    items.forEach(product => {
+                        html += `
+                            <div class="comparison-card">
+                                <img src="${product.image_url}" alt="${product.productDisplayname}">
+                                <p><b>${product.productDisplayname}</b></p>
+                                <p>₹${product.price}</p>
+                                <p>${product.masterCategory} · ${product.subCategory}</p>
+                                <p>Colour: ${product.baseCOlour}</p>
+                            </div>
+                        `;
+                    });
+                    html += '</div></div>';
+                    return html;
+                };
+
+                if (data.suggestions.tops) {
+                    results.innerHTML += renderSection('Tops', data.suggestions.tops);
+                }
+                if (data.suggestions.bottoms) {
+                    results.innerHTML += renderSection('Bottoms', data.suggestions.bottoms);
+                }
+                if (data.suggestions.accessories) {
+                    results.innerHTML += renderSection('Accessories', data.suggestions.accessories);
+                }
+                document.getElementById('style-match-modal').style.display = 'flex';
+            })
+            .catch(() => alert('Style matching failed.'));
+        }
+
+        function closeStyleMatchModal() {
+            document.getElementById('style-match-modal').style.display = 'none';
+        }
+
+        const minPriceInput = document.getElementById("min_price");
+        const maxPriceInput = document.getElementById("max_price");
+        minPriceInput.addEventListener("input", updatePriceValue);
+        maxPriceInput.addEventListener("input", updatePriceValue);
+        minPriceInput.addEventListener("change", () => loadProducts(1));
+        maxPriceInput.addEventListener("change", () => loadProducts(1));
 
         function updateSelectionState() {
             document.getElementById("selected-count").textContent = selectedProducts.length;
