@@ -12,8 +12,12 @@
                 <p>Browse a curated collection, filter by style and color, then preview your favorite look with live try-on.</p>
             </div>
             <div class="hero-actions">
-                <button class="hero-button" onclick="compareProducts()">Compare Selected</button>
-                <button class="hero-button secondary" onclick="clearSelectedProducts()">Clear Selected</button>
+                <button id="compare-button" type="button" class="hero-button" onclick="compareProducts()">Compare Selected</button>
+                <button type="button" class="hero-button secondary" onclick="clearSelectedProducts()">Clear Selected</button>
+            </div>
+            <div class="selection-summary">
+                <span>Selected <span id="selected-count">0</span> products</span>
+                <div id="selected-products-list" class="selected-products-list"></div>
             </div>
         </section>
 
@@ -199,7 +203,7 @@
                 productMap[p.id] = p;
                 grid.innerHTML += `
                     <div class="product-card">
-                        <input type="checkbox" value="${p.id}" onchange="toggleProduct(this)">
+                        <input type="checkbox" value="${p.id}" onchange="toggleProduct(this)" ${selectedProducts.includes(p.id) ? 'checked' : ''}>
                         <img src="${p.image_url}" alt="${p.productDisplayname}" loading="lazy" decoding="async">
                         <h4>${p.productDisplayname}</h4>
                         <p>₹${p.price}</p>
@@ -216,6 +220,7 @@
                 <span>Page ${page}</span>
                 <button onclick="loadProducts(${page+1})" ${data.products.length < perPage ? 'disabled' : ''}>Next</button>
             `;
+            updateSelectionState();
         }
 
         // Handle product selection
@@ -235,6 +240,7 @@
                 selectedProducts = selectedProducts.filter(id => id !== productId);
                 delete selectedProductsData[productId];
             }
+            updateSelectionState();
         }
 
         function openTryOnModal(productId) {
@@ -311,10 +317,12 @@
             userImage = new Image();
             userImage.onload = () => {
                 const product = productMap[activeTryOnProductId];
-                if (!product) return;
+                if (!product || !product.image_url) {
+                    alert("Unable to find the selected product image. Please try a different item.");
+                    return;
+                }
 
                 productOverlayImage = new Image();
-                productOverlayImage.crossOrigin = "anonymous";
                 productOverlayImage.onload = () => {
                     document.getElementById("tryon-placeholder").style.display = "none";
                     document.getElementById("tryon-preview-panel").style.display = "block";
@@ -344,6 +352,7 @@
             selectedProducts = [];
             selectedProductsData = {};
             document.querySelectorAll('#product-grid input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateSelectionState();
         }
 
         async function tryOnSelectedProduct() {
@@ -358,11 +367,13 @@
             }
 
             productOverlayImage = new Image();
-            productOverlayImage.crossOrigin = "anonymous";
             productOverlayImage.onload = () => {
                 showTryOnControls();
                 autoFitTryOn();
                 drawTryOn();
+            };
+            productOverlayImage.onerror = () => {
+                alert("Failed to load product preview image. Please try another product or refresh the page.");
             };
             productOverlayImage.src = product.image_url;
         }
@@ -380,6 +391,10 @@
                 body: JSON.stringify({products: selectedProducts})
             });
             let data = await response.json();
+            if (!response.ok) {
+                alert(data.error || "Unable to compare products. Please try again.");
+                return;
+            }
 
             document.getElementById("comparison-box").style.display = "block";
             let resultsDiv = document.getElementById("comparison-results");
@@ -408,6 +423,25 @@
         document.getElementById("min_price").addEventListener("input", updatePriceValue);
         document.getElementById("max_price").addEventListener("input", updatePriceValue);
         document.getElementById("reference-image-input").addEventListener("change", handleReferenceImageUpload);
+
+        function updateSelectionState() {
+            document.getElementById("selected-count").textContent = selectedProducts.length;
+            document.getElementById("compare-button").disabled = selectedProducts.length < 2;
+
+            const list = document.getElementById("selected-products-list");
+            list.innerHTML = "";
+            selectedProducts.forEach(id => {
+                const product = selectedProductsData[id];
+                if (product) {
+                    const chip = document.createElement("span");
+                    chip.className = "product-chip";
+                    chip.textContent = product.productDisplayname;
+                    list.appendChild(chip);
+                }
+            });
+        }
+
+        updateSelectionState();
         document.getElementById("tryon-scale").addEventListener("input", event => {
             tryOnScale = parseFloat(event.target.value);
             drawTryOn();

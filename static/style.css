@@ -44,6 +44,31 @@ main {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: center;
+}
+
+.selection-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 12px;
+    color: #334e68;
+    font-weight: 600;
+}
+
+.selected-products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.product-chip {
+    background: rgba(15, 75, 129, 0.1);
+    color: #0f4c81;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.9rem;
 }
 
 .hero-button,
