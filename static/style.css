@@ -90,6 +90,105 @@ body {
     margin-top: 12px;
 }
 
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 12px;
+    width: min(980px, 100%);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+    padding: 24px;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.tryon-details {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.tryon-product-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex: 1 1 320px;
+}
+
+.tryon-product-card img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.tryon-upload-card {
+    flex: 1 1 260px;
+    background: #f7f9fc;
+    border: 1px dashed #c1c8d4;
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.tryon-upload-card input[type="file"] {
+    display: block;
+    margin-top: 12px;
+}
+
+.try-on-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+    align-items: center;
+}
+
+.try-on-controls label {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #333;
+}
+
+.try-on-controls input[type="range"] {
+    width: 220px;
+    margin-top: 8px;
+}
+
+.try-on-card-button {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #28a745;
+    color: #fff;
+    cursor: pointer;
+}
+
+.try-on-card-button:hover {
+    background: #218838;
+}
+
 .try-on-panel button {
     margin-top: 12px;
     padding: 10px 16px;
@@ -144,6 +243,37 @@ body {
 #pagination {
     text-align: center;
     padding: 20px;
+}
+
+.top-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e5e9f0;
+}
+
+.top-actions button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+}
+
+.top-actions button:hover {
+    background: #0056b3;
+}
+
+.tryon-note {
+    background: #eaf4ff;
+    color: #0f4c81;
+    padding: 14px 20px;
+    margin: 0;
+    font-size: 14px;
+    border-left: 4px solid #007bff;
 }
 
 #pagination button {
