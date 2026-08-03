@@ -1,9 +1,18 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
+from urllib.parse import urlencode
 import boto3
 import mysql.connector
 import os
+import requests
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+DEFAULT_GOOGLE_CLIENT_ID = "your-google-client-id"
+DEFAULT_GOOGLE_CLIENT_SECRET = "your-google-client-secret"
+DEFAULT_GOOGLE_REDIRECT_URI = "http://localhost:5000/auth/google"
+
+conn = None
 
 # AWS S3 client
 s3 = boto3.client(
@@ -15,22 +24,139 @@ s3 = boto3.client(
 
 BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", "ecommersfashion-images-bucket")
 
-# MySQL connection
-conn = mysql.connector.connect(
-    host=os.environ.get("RDS_HOST"),
-    user=os.environ.get("RDS_USER"),
-    password=os.environ.get("RDS_PASSWORD"),
-    database=os.environ.get("RDS_DB"),
-    use_pure=True
-)
+def get_db_connection():
+    global conn
+    if conn is not None:
+        return conn
+
+    host = os.environ.get("RDS_HOST")
+    user = os.environ.get("RDS_USER")
+    password = os.environ.get("RDS_PASSWORD")
+    database = os.environ.get("RDS_DB")
+
+    if not all([host, user, password, database]):
+        return None
+
+    try:
+        conn = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database,
+            use_pure=True,
+        )
+        return conn
+    except Exception:
+        return None
+
+
+def build_product_filters(request_args, default_max_price=None):
+    filters = []
+    values = []
+
+    for field in ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]:
+        val = request_args.get(field)
+        if val:
+            filters.append(f"{field} = %s")
+            values.append(val)
+
+    max_price = request_args.get("max_price")
+    if max_price and default_max_price is not None and str(max_price) != str(default_max_price):
+        filters.append("price <= %s")
+        values.append(max_price)
+
+    return filters, values
+
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("index.html", user=session.get("user"))
+
+
+@app.route("/login")
+def login():
+    client_id = os.environ.get("GOOGLE_CLIENT_ID", DEFAULT_GOOGLE_CLIENT_ID)
+    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI)
+    auth_url = ""
+
+    if client_id:
+        params = {
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "email profile",
+            "access_type": "online",
+        }
+        auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+
+    return render_template(
+        "login.html",
+        auth_url=auth_url,
+        client_id=client_id,
+        redirect_uri=redirect_uri,
+    )
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect(url_for("login"))
+
+
+@app.route("/auth/google")
+def google_auth():
+    code = request.args.get("code")
+    if not code:
+        return redirect(url_for("login"))
+
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID", DEFAULT_GOOGLE_CLIENT_ID),
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", DEFAULT_GOOGLE_CLIENT_SECRET),
+        "redirect_uri": os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI),
+        "grant_type": "authorization_code",
+    }
+
+    token_response = requests.post(token_url, data=data, timeout=10)
+    token_json = token_response.json()
+    access_token = token_json.get("access_token")
+    if not access_token:
+        return redirect(url_for("login"))
+
+    userinfo_response = requests.get(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=10,
+    )
+    userinfo = userinfo_response.json()
+
+    if userinfo.get("email"):
+        session["user"] = {
+            "email": userinfo.get("email"),
+            "name": userinfo.get("name") or userinfo.get("email"),
+            "picture": userinfo.get("picture"),
+        }
+
+    return redirect(url_for("home"))
 
 @app.route("/filters", methods=["GET"])
 def filters():
-    cursor = conn.cursor()
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({
+            "gender": [],
+            "masterCategory": [],
+            "subCategory": [],
+            "ArticleType": [],
+            "baseCOlour": [],
+            "season": [],
+            "price_range": {"min": 0, "max": 100000},
+        })
+
+    cursor = connection.cursor()
     fields = ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]
     filter_data = {}
     for field in fields:
@@ -50,26 +176,18 @@ def products():
     per_page = 16
     offset = (page - 1) * per_page
 
-    filters = []
-    values = []
-    for field in ["gender", "masterCategory", "subCategory", "ArticleType", "baseCOlour", "season"]:
-        val = request.args.get(field)
-        if val:
-            filters.append(f"{field} = %s")
-            values.append(val)
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"products": [], "page": page})
 
-    min_price = request.args.get("min_price")
-    max_price = request.args.get("max_price")
-    if min_price:
-        filters.append("price >= %s")
-        values.append(min_price)
-    if max_price:
-        filters.append("price <= %s")
-        values.append(max_price)
+    cursor = connection.cursor()
+    cursor.execute("SELECT MAX(price) FROM ecommerce_proj_data WHERE price IS NOT NULL")
+    db_max_price = cursor.fetchone()[0]
 
+    filters, values = build_product_filters(request.args, db_max_price)
     where_clause = " AND ".join(filters) if filters else "1=1"
 
-    cursor = conn.cursor(dictionary=True)
+    cursor = connection.cursor(dictionary=True)
     query = f"""
         SELECT id, productDisplayname, price, gender, masterCategory, subCategory, ArticleType, baseCOlour, season
         FROM ecommerce_proj_data
@@ -96,7 +214,11 @@ def compare():
     if len(product_ids) > 4:
         return jsonify({"error": "You can compare up to 4 products only"}), 400
 
-    cursor = conn.cursor(dictionary=True)
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"comparison": []})
+
+    cursor = connection.cursor(dictionary=True)
     format_strings = ','.join(['%s'] * len(product_ids))
     query = f"""
         SELECT id, productDisplayname, price, gender, masterCategory, subCategory, ArticleType, baseCOlour, season

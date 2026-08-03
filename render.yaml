@@ -21,3 +21,11 @@ services:
         sync: false
       - key: RDS_DB
         value: SQLRDSAWS
+      - key: SECRET_KEY
+        value: change-this-secret
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false

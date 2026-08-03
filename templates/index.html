@@ -5,6 +5,11 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <div style="display:flex;justify-content:flex-end;padding:10px 20px;background:#fff;border-bottom:1px solid #ddd;">
+        <span style="margin-right:10px;">Hello, {{ user.name }}</span>
+        <a href="/logout" style="color:#007bff;text-decoration:none;">Logout</a>
+    </div>
+
     <!-- Filters Section -->
     <div class="filters">
         <form id="filter-form">
@@ -15,14 +20,37 @@
             <select name="baseCOlour" id="baseCOlour"></select>
             <select name="season" id="season"></select>
             <label>Price Range:</label>
-            <input type="range" id="min_price" name="min_price">
-            <input type="range" id="max_price" name="max_price">
+            <div class="price-range-container">
+                <input type="range" id="min_price" name="min_price" min="0" max="100000" value="0">
+                <input type="range" id="max_price" name="max_price" min="0" max="100000" value="100000">
+            </div>
+            <div id="price-value">₹0 - ₹100000</div>
             <button type="submit">Apply Filters</button>
         </form>
     </div>
 
-    <!-- Product Grid -->
-    <div id="product-grid" class="grid"></div>
+    <div class="app-shell">
+        <div class="main-content">
+            <!-- Product Grid -->
+            <div id="product-grid" class="grid"></div>
+        </div>
+
+        <aside class="side-panel">
+            <div class="cart-card">
+                <h3>🛒 My Cart</h3>
+                <div id="cart-items"></div>
+                <button onclick="addSelectedToCart()">Add Selected to Cart</button>
+            </div>
+
+            <div class="chat-card">
+                <h3>💬 Shopping Assistant</h3>
+                <div id="chat-messages">
+                    <p class="chat-bubble bot">Hi! Select products you like and I’ll help you keep track of them.</p>
+                </div>
+                <button onclick="sendChatMessage()">Ask Assistant</button>
+            </div>
+        </aside>
+    </div>
 
     <!-- Pagination -->
     <div id="pagination"></div>
@@ -43,6 +71,7 @@
         let selectedProducts = [];
         let currentPage = 1;
         const perPage = 16; // ✅ Match backend
+        let cartItems = [];
 
         // Load filters from backend
         async function loadFilters() {
@@ -57,17 +86,56 @@
                 });
             });
 
-            document.getElementById("min_price").min = data.price_range.min;
-            document.getElementById("min_price").max = data.price_range.max;
-            document.getElementById("max_price").min = data.price_range.min;
-            document.getElementById("max_price").max = data.price_range.max;
+            const minPriceInput = document.getElementById("min_price");
+            const maxPriceInput = document.getElementById("max_price");
+            const minPrice = Number(data.price_range.min);
+            const maxPrice = Number(data.price_range.max);
+
+            minPriceInput.min = minPrice;
+            minPriceInput.max = maxPrice;
+            minPriceInput.value = minPrice;
+            maxPriceInput.min = minPrice;
+            maxPriceInput.max = maxPrice;
+            maxPriceInput.value = maxPrice;
+            updatePriceValue();
+        }
+
+        function updatePriceValue() {
+            const minPriceInput = document.getElementById("min_price");
+            const maxPriceInput = document.getElementById("max_price");
+            const priceValue = document.getElementById("price-value");
+            const minPrice = Number(minPriceInput.value);
+            const maxPrice = Number(maxPriceInput.value);
+            priceValue.textContent = `₹${minPrice.toLocaleString()} - ₹${maxPrice.toLocaleString()}`;
         }
 
         // Load products with filters + pagination
         async function loadProducts(page=1) {
             currentPage = page;
-            const formData = new FormData(document.getElementById("filter-form"));
-            const params = new URLSearchParams(formData);
+            const form = document.getElementById("filter-form");
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+
+            const minPriceInput = document.getElementById("min_price");
+            const maxPriceInput = document.getElementById("max_price");
+            const minPrice = Number(minPriceInput.value);
+            const maxPrice = Number(maxPriceInput.value);
+            const defaultMinPrice = Number(minPriceInput.min);
+            const defaultMaxPrice = Number(maxPriceInput.max);
+
+            if (Number.isFinite(minPrice) && minPrice !== defaultMinPrice) {
+                params.set("min_price", minPrice);
+            }
+            if (Number.isFinite(maxPrice) && maxPrice !== defaultMaxPrice) {
+                params.set("max_price", maxPrice);
+            }
+
             params.append("page", page);
 
             let response = await fetch("/products?" + params.toString());
@@ -111,6 +179,49 @@
             }
         }
 
+        function addSelectedToCart() {
+            if (selectedProducts.length === 0) {
+                alert("Please select at least one product to add to cart.");
+                return;
+            }
+
+            const productCount = selectedProducts.length;
+            cartItems.push(...selectedProducts);
+            selectedProducts = [];
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            renderCart();
+            addChatMessage(`Added ${productCount} selected product${productCount > 1 ? 's' : ''} to your cart.`);
+        }
+
+        function renderCart() {
+            const cartContainer = document.getElementById("cart-items");
+            if (cartItems.length === 0) {
+                cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+                return;
+            }
+
+            cartContainer.innerHTML = cartItems.map((id, index) => `<p>${index + 1}. Product #${id}</p>`).join("");
+        }
+
+        function addChatMessage(message) {
+            const chatMessages = document.getElementById("chat-messages");
+            const bubble = document.createElement("p");
+            bubble.className = "chat-bubble user";
+            bubble.textContent = message;
+            chatMessages.appendChild(bubble);
+        }
+
+        function sendChatMessage() {
+            const message = prompt("What would you like to know about your selected products?");
+            if (!message) return;
+            addChatMessage(message);
+            const response = `You asked: "${message}". I’ll help you shortlist your favorites soon.`;
+            const assistantBubble = document.createElement("p");
+            assistantBubble.className = "chat-bubble bot";
+            assistantBubble.textContent = response;
+            document.getElementById("chat-messages").appendChild(assistantBubble);
+        }
+
         // Compare selected products
         async function compareProducts() {
             if (selectedProducts.length < 2) {
@@ -148,6 +259,9 @@
         function closeComparison() {
             document.getElementById("comparison-box").style.display = "none";
         }
+
+        document.getElementById("min_price").addEventListener("input", updatePriceValue);
+        document.getElementById("max_price").addEventListener("input", updatePriceValue);
 
         // Initialize page
         window.onload = async () => {
