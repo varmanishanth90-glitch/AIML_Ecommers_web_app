@@ -605,12 +605,11 @@ main {
 }
 
 /* Comparison Box */
-#comparison-box {
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 20px;
-    margin: 20px;
-    border-radius: 6px;
+.comparison-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 12px;
 }
 
 .comparison-card {

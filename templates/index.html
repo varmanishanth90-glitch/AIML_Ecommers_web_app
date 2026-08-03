@@ -48,7 +48,7 @@
     </div>
 
     <div class="tryon-note">
-        <strong>Try-On Guide:</strong> Select a product, click the <em>Try On</em> button, upload your reference photo in the popup, then use the scale and offset controls to preview the apparel fit.
+        <strong>Try-On Guide:</strong> Select a product, click the <em>Try On</em> button, upload your reference photo in the popup, then see the selected product replace it instantly.
     </div>
 
     <!-- Product Grid -->
@@ -63,19 +63,19 @@
             <div class="tryon-modal-header">
                 <div>
                     <h3>Live Apparel Fitting</h3>
-                    <p class="tryon-modal-subtitle">Upload a reference photo and preview the selected product on it instantly.</p>
+                    <p class="tryon-modal-subtitle">Upload a photo to begin, then see the selected product replace it instantly.</p>
                 </div>
                 <button class="modal-close" type="button" onclick="closeTryOnModal()">✕</button>
             </div>
             <div class="tryon-modal-body">
                 <div class="tryon-preview-column">
-                    <div class="tryon-preview-title">Uploaded Image Preview</div>
+                    <div class="tryon-preview-title">Selected Product Preview</div>
                     <div class="tryon-preview-panel" id="tryon-preview-panel" style="display:none;">
                         <div class="tryon-preview-frame">
                             <canvas id="tryon-canvas"></canvas>
                             <div class="preview-badge">Preview</div>
                         </div>
-                        <div class="tryon-preview-label">Your uploaded reference image with apparel overlay</div>
+                        <div class="tryon-preview-label">Reference image replaced by the selected product.</div>
                         <button class="exit-tryon-button" type="button" onclick="closeTryOnModal()">Exit Try On</button>
                     </div>
                     <div class="tryon-placeholder" id="tryon-placeholder">
@@ -93,26 +93,27 @@
                         </div>
                     </div>
                     <div class="tryon-upload-card">
-                        <p>Choose a reference image to see the selected apparel fit.</p>
+                        <p>Choose a reference image to start the try-on preview.</p>
                         <p class="tryon-note-small">Tip: full-body or torso images work best.</p>
                         <input type="file" id="reference-image-input" accept="image/*">
-                    </div>
-                    <div id="tryon-controls" class="try-on-controls" style="display:none;">
-                        <label>Scale: <input type="range" id="tryon-scale" min="0.2" max="1.2" step="0.05" value="0.6"></label>
-                        <label>X Offset: <input type="range" id="tryon-offset-x" min="-200" max="200" step="5" value="0"></label>
-                        <label>Y Offset: <input type="range" id="tryon-offset-y" min="-200" max="200" step="5" value="0"></label>
-                        <button type="button" id="tryon-auto-fit">Auto Fit</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Comparison Screen -->
-    <div id="comparison-box" style="display:none;">
-        <h3>🔍 Product Comparison</h3>
-        <div id="comparison-results"></div>
-        <button onclick="closeComparison()">Close</button>
+    <!-- Comparison Modal -->
+    <div id="comparison-box" class="modal" style="display:none;">
+        <div class="modal-content tryon-modal-content comparison-modal-content">
+            <div class="tryon-modal-header">
+                <div>
+                    <h3>Product Comparison</h3>
+                    <p class="tryon-modal-subtitle">Compare your selected items side by side.</p>
+                </div>
+                <button class="modal-close" type="button" onclick="closeComparison()">✕</button>
+            </div>
+            <div id="comparison-results" class="comparison-results"></div>
+        </div>
     </div>
     </main>
 
@@ -123,11 +124,7 @@
         let activeTryOnProductId = null;
         let currentPage = 1;
         const perPage = 16; // ✅ Match backend
-        let userImage = null;
         let productOverlayImage = null;
-        let tryOnScale = 0.6;
-        let tryOnOffsetX = 0;
-        let tryOnOffsetY = 0;
 
         // Load filters from backend
         async function loadFilters() {
@@ -256,16 +253,8 @@
             document.getElementById("reference-image-input").value = "";
             document.getElementById("tryon-preview-panel").style.display = "none";
             document.getElementById("tryon-canvas").style.display = "none";
-            document.getElementById("tryon-controls").style.display = "none";
             document.getElementById("tryon-placeholder").style.display = "block";
-            userImage = null;
             productOverlayImage = null;
-            tryOnScale = 0.6;
-            tryOnOffsetX = 0;
-            tryOnOffsetY = 0;
-            document.getElementById("tryon-scale").value = tryOnScale;
-            document.getElementById("tryon-offset-x").value = tryOnOffsetX;
-            document.getElementById("tryon-offset-y").value = tryOnOffsetY;
             document.getElementById("tryon-modal").style.display = "flex";
         }
 
@@ -277,75 +266,43 @@
             return activeTryOnProductId ? productMap[activeTryOnProductId] : null;
         }
 
-        function showTryOnControls() {
-            document.getElementById("tryon-controls").style.display = "flex";
-        }
-
         function drawTryOn() {
             const canvas = document.getElementById("tryon-canvas");
-            if (!userImage || !productOverlayImage) {
+            if (!productOverlayImage) {
                 return;
             }
 
             const ctx = canvas.getContext("2d");
             const maxCanvasWidth = 960;
-            const imageScale = Math.min(1, maxCanvasWidth / userImage.naturalWidth);
-            canvas.width = Math.round(userImage.naturalWidth * imageScale);
-            canvas.height = Math.round(userImage.naturalHeight * imageScale);
+            const imageScale = Math.min(1, maxCanvasWidth / productOverlayImage.naturalWidth);
+            canvas.width = Math.round(productOverlayImage.naturalWidth * imageScale);
+            canvas.height = Math.round(productOverlayImage.naturalHeight * imageScale);
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
-
-            const overlayBaseWidth = canvas.width * 0.55;
-            const overlayWidth = overlayBaseWidth * tryOnScale;
-            const overlayHeight = overlayWidth * (productOverlayImage.naturalHeight / productOverlayImage.naturalWidth);
-            const x = (canvas.width - overlayWidth) / 2 + tryOnOffsetX;
-            const y = canvas.height * 0.18 + tryOnOffsetY;
-
-            ctx.save();
-            ctx.globalAlpha = 0.9;
-            ctx.filter = "drop-shadow(0px 14px 24px rgba(15, 23, 42, 0.18))";
-            ctx.drawImage(productOverlayImage, x, y, overlayWidth, overlayHeight);
-            ctx.restore();
+            ctx.drawImage(productOverlayImage, 0, 0, canvas.width, canvas.height);
         }
 
         function handleReferenceImageUpload(event) {
             const file = event.target.files[0];
             if (!file || !activeTryOnProductId) return;
 
-            const url = URL.createObjectURL(file);
-            userImage = new Image();
-            userImage.onload = () => {
-                const product = productMap[activeTryOnProductId];
-                if (!product || !product.image_url) {
-                    alert("Unable to find the selected product image. Please try a different item.");
-                    return;
-                }
+            const product = productMap[activeTryOnProductId];
+            if (!product || !product.image_url) {
+                alert("Unable to find the selected product image. Please try a different item.");
+                return;
+            }
 
-                productOverlayImage = new Image();
-                productOverlayImage.onload = () => {
-                    document.getElementById("tryon-placeholder").style.display = "none";
-                    document.getElementById("tryon-preview-panel").style.display = "block";
-                    document.getElementById("tryon-canvas").style.display = "block";
-                    document.getElementById("tryon-controls").style.display = "flex";
-                    autoFitTryOn();
-                };
-                productOverlayImage.onerror = () => {
-                    alert("Failed to load product preview image. Please try another product or refresh the page.");
-                };
-                productOverlayImage.src = product.image_url;
+            productOverlayImage = new Image();
+            productOverlayImage.onload = () => {
+                document.getElementById("tryon-placeholder").style.display = "none";
+                document.getElementById("tryon-preview-panel").style.display = "block";
+                document.getElementById("tryon-canvas").style.display = "block";
+                drawTryOn();
             };
-            userImage.src = url;
-        }
-
-        function autoFitTryOn() {
-            tryOnScale = 0.6;
-            tryOnOffsetX = 0;
-            tryOnOffsetY = 0;
-            document.getElementById("tryon-scale").value = tryOnScale;
-            document.getElementById("tryon-offset-x").value = tryOnOffsetX;
-            document.getElementById("tryon-offset-y").value = tryOnOffsetY;
-            drawTryOn();
+            productOverlayImage.onerror = () => {
+                alert("Failed to load product preview image. Please try another product or refresh the page.");
+            };
+            productOverlayImage.src = product.image_url;
         }
 
         function clearSelectedProducts() {
@@ -353,29 +310,6 @@
             selectedProductsData = {};
             document.querySelectorAll('#product-grid input[type="checkbox"]').forEach(cb => cb.checked = false);
             updateSelectionState();
-        }
-
-        async function tryOnSelectedProduct() {
-            const product = getTryOnProduct();
-            if (!product) {
-                alert("Please select a product to try on.");
-                return;
-            }
-            if (!userImage) {
-                alert("Please upload your photo first.");
-                return;
-            }
-
-            productOverlayImage = new Image();
-            productOverlayImage.onload = () => {
-                showTryOnControls();
-                autoFitTryOn();
-                drawTryOn();
-            };
-            productOverlayImage.onerror = () => {
-                alert("Failed to load product preview image. Please try another product or refresh the page.");
-            };
-            productOverlayImage.src = product.image_url;
         }
 
         // Compare selected products
@@ -442,19 +376,6 @@
         }
 
         updateSelectionState();
-        document.getElementById("tryon-scale").addEventListener("input", event => {
-            tryOnScale = parseFloat(event.target.value);
-            drawTryOn();
-        });
-        document.getElementById("tryon-offset-x").addEventListener("input", event => {
-            tryOnOffsetX = parseInt(event.target.value, 10);
-            drawTryOn();
-        });
-        document.getElementById("tryon-offset-y").addEventListener("input", event => {
-            tryOnOffsetY = parseInt(event.target.value, 10);
-            drawTryOn();
-        });
-        document.getElementById("tryon-auto-fit").addEventListener("click", autoFitTryOn);
 
         // Initialize page
         window.onload = async () => {
