@@ -5,11 +5,6 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div style="display:flex;justify-content:flex-end;padding:10px 20px;background:#fff;border-bottom:1px solid #ddd;">
-        <span style="margin-right:10px;">Hello, {{ user.name }}</span>
-        <a href="/logout" style="color:#007bff;text-decoration:none;">Logout</a>
-    </div>
-
     <!-- Filters Section -->
     <div class="filters">
         <form id="filter-form">
@@ -29,28 +24,8 @@
         </form>
     </div>
 
-    <div class="app-shell">
-        <div class="main-content">
-            <!-- Product Grid -->
-            <div id="product-grid" class="grid"></div>
-        </div>
-
-        <aside class="side-panel">
-            <div class="cart-card">
-                <h3>🛒 My Cart</h3>
-                <div id="cart-items"></div>
-                <button onclick="addSelectedToCart()">Add Selected to Cart</button>
-            </div>
-
-            <div class="chat-card">
-                <h3>💬 Shopping Assistant</h3>
-                <div id="chat-messages">
-                    <p class="chat-bubble bot">Hi! Select products you like and I’ll help you keep track of them.</p>
-                </div>
-                <button onclick="sendChatMessage()">Ask Assistant</button>
-            </div>
-        </aside>
-    </div>
+    <!-- Product Grid -->
+    <div id="product-grid" class="grid"></div>
 
     <!-- Pagination -->
     <div id="pagination"></div>
@@ -71,7 +46,6 @@
         let selectedProducts = [];
         let currentPage = 1;
         const perPage = 16; // ✅ Match backend
-        let cartItems = [];
 
         // Load filters from backend
         async function loadFilters() {
@@ -177,49 +151,6 @@
             } else {
                 selectedProducts = selectedProducts.filter(id => id !== productId);
             }
-        }
-
-        function addSelectedToCart() {
-            if (selectedProducts.length === 0) {
-                alert("Please select at least one product to add to cart.");
-                return;
-            }
-
-            const productCount = selectedProducts.length;
-            cartItems.push(...selectedProducts);
-            selectedProducts = [];
-            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-            renderCart();
-            addChatMessage(`Added ${productCount} selected product${productCount > 1 ? 's' : ''} to your cart.`);
-        }
-
-        function renderCart() {
-            const cartContainer = document.getElementById("cart-items");
-            if (cartItems.length === 0) {
-                cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-                return;
-            }
-
-            cartContainer.innerHTML = cartItems.map((id, index) => `<p>${index + 1}. Product #${id}</p>`).join("");
-        }
-
-        function addChatMessage(message) {
-            const chatMessages = document.getElementById("chat-messages");
-            const bubble = document.createElement("p");
-            bubble.className = "chat-bubble user";
-            bubble.textContent = message;
-            chatMessages.appendChild(bubble);
-        }
-
-        function sendChatMessage() {
-            const message = prompt("What would you like to know about your selected products?");
-            if (!message) return;
-            addChatMessage(message);
-            const response = `You asked: "${message}". I’ll help you shortlist your favorites soon.`;
-            const assistantBubble = document.createElement("p");
-            assistantBubble.className = "chat-bubble bot";
-            assistantBubble.textContent = response;
-            document.getElementById("chat-messages").appendChild(assistantBubble);
         }
 
         // Compare selected products

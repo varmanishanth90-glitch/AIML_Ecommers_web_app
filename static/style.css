@@ -36,25 +36,6 @@ body {
     background: #0056b3;
 }
 
-/* Layout */
-.app-shell {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-}
-
-.main-content {
-    flex: 2;
-}
-
-.side-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    min-width: 280px;
-}
-
 /* Product Grid */
 .grid {
     display: grid;
@@ -147,45 +128,4 @@ body {
     height: 120px;
     object-fit: contain;
     margin-bottom: 8px;
-}
-
-.cart-card, .chat-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.cart-card button, .chat-card button {
-    margin-top: 10px;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    background: #28a745;
-    color: white;
-    cursor: pointer;
-}
-
-#chat-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.chat-bubble {
-    padding: 8px 10px;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.chat-bubble.user {
-    background: #e8f0fe;
-    align-self: flex-end;
-}
-
-.chat-bubble.bot {
-    background: #f1f1f1;
-    align-self: flex-start;
 }

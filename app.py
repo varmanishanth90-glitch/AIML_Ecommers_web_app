@@ -1,16 +1,10 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-from urllib.parse import urlencode
+from flask import Flask, request, jsonify, render_template
 import boto3
 import mysql.connector
 import os
-import requests
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
-
-DEFAULT_GOOGLE_CLIENT_ID = None
-DEFAULT_GOOGLE_CLIENT_SECRET = None
-DEFAULT_GOOGLE_REDIRECT_URI = "https://aiml-ecommers-web-app.onrender.com/auth/google"
 
 conn = None
 
@@ -70,85 +64,7 @@ def build_product_filters(request_args, default_max_price=None):
 
 @app.route("/")
 def home():
-    if "user" not in session:
-        return redirect(url_for("login"))
-    return render_template("index.html", user=session.get("user"))
-
-
-@app.route("/login")
-def login():
-    client_id = os.environ.get("GOOGLE_CLIENT_ID") or DEFAULT_GOOGLE_CLIENT_ID
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET") or DEFAULT_GOOGLE_CLIENT_SECRET
-    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI)
-    auth_url = ""
-
-    if client_id and client_secret:
-        params = {
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "scope": "email profile",
-            "access_type": "online",
-        }
-        auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
-
-    return render_template(
-        "login.html",
-        auth_url=auth_url,
-        client_id=client_id,
-        redirect_uri=redirect_uri,
-    )
-
-
-@app.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
-
-
-@app.route("/auth/google")
-def google_auth():
-    code = request.args.get("code")
-    if not code:
-        return redirect(url_for("login"))
-
-    token_url = "https://oauth2.googleapis.com/token"
-    client_id = os.environ.get("GOOGLE_CLIENT_ID") or DEFAULT_GOOGLE_CLIENT_ID
-    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET") or DEFAULT_GOOGLE_CLIENT_SECRET
-    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI)
-
-    if not client_id or not client_secret:
-        return "Google OAuth is not configured. Please set valid client ID and secret.", 400
-
-    data = {
-        "code": code,
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "redirect_uri": redirect_uri,
-        "grant_type": "authorization_code",
-    }
-
-    token_response = requests.post(token_url, data=data, timeout=10)
-    token_json = token_response.json()
-    access_token = token_json.get("access_token")
-    if not access_token:
-        return redirect(url_for("login"))
-
-    userinfo_response = requests.get(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"},
-        timeout=10,
-    )
-    userinfo = userinfo_response.json()
-
-    if userinfo.get("email"):
-        session["user"] = {
-            "email": userinfo.get("email"),
-            "name": userinfo.get("name") or userinfo.get("email"),
-            "picture": userinfo.get("picture"),
-        }
-
-    return redirect(url_for("home"))
+    return render_template("index.html")
 
 @app.route("/filters", methods=["GET"])
 def filters():
