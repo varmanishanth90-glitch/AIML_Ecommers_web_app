@@ -55,11 +55,17 @@
                     </div>
                 </div>
                 <div class="tryon-upload-card">
-                    <p>Upload a reference photo and see the selected apparel fit it in real time.</p>
+                    <p>Upload a reference photo and the selected apparel will be overlaid on it automatically for virtual try-on.</p>
+                    <p class="tryon-note-small">Tip: choose a full-body or torso image for best results, then adjust scale and position.</p>
                     <input type="file" id="reference-image-input" accept="image/*">
                 </div>
             </div>
-            <canvas id="tryon-canvas" style="display:none;"></canvas>
+            <div class="tryon-preview-panel" id="tryon-preview-panel" style="display:none;">
+                <div class="tryon-preview-frame">
+                    <canvas id="tryon-canvas"></canvas>
+                </div>
+                <div class="tryon-preview-label">Your uploaded reference image with selected apparel overlay</div>
+            </div>
             <div id="tryon-controls" class="try-on-controls" style="display:none;">
                 <label>Scale: <input type="range" id="tryon-scale" min="0.2" max="1.2" step="0.05" value="0.6"></label>
                 <label>X Offset: <input type="range" id="tryon-offset-x" min="-200" max="200" step="5" value="0"></label>
@@ -212,6 +218,7 @@
             document.getElementById("modal-product-category").textContent = `${product.gender} · ${product.masterCategory} · ${product.subCategory}`;
             document.getElementById("modal-product-attributes").textContent = `Type: ${product.ArticleType}, Colour: ${product.baseCOlour}, Season: ${product.season}`;
             document.getElementById("reference-image-input").value = "";
+            document.getElementById("tryon-preview-panel").style.display = "none";
             document.getElementById("tryon-canvas").style.display = "none";
             document.getElementById("tryon-controls").style.display = "none";
             userImage = null;
@@ -263,11 +270,14 @@
                 if (!product) return;
 
                 productOverlayImage = new Image();
-                productOverlayImage.crossOrigin = "anonymous";
                 productOverlayImage.onload = () => {
+                    document.getElementById("tryon-preview-panel").style.display = "block";
                     document.getElementById("tryon-canvas").style.display = "block";
                     document.getElementById("tryon-controls").style.display = "flex";
                     autoFitTryOn();
+                };
+                productOverlayImage.onerror = () => {
+                    alert("Failed to load product preview image. Please try another product or refresh the page.");
                 };
                 productOverlayImage.src = product.image_url;
             };

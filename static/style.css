@@ -88,6 +88,13 @@ body {
     border: 1px solid #ccc;
     border-radius: 6px;
     margin-top: 12px;
+    background: #fff;
+}
+
+.tryon-note-small {
+    margin: 8px 0 12px;
+    font-size: 13px;
+    color: #4e5f7d;
 }
 
 .modal {
@@ -153,6 +160,36 @@ body {
 .tryon-upload-card input[type="file"] {
     display: block;
     margin-top: 12px;
+}
+
+.tryon-preview-panel {
+    margin-top: 16px;
+    border: 1px solid #d8e0ea;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fbfcfe;
+}
+
+.tryon-preview-frame {
+    width: 100%;
+    min-height: 320px;
+    border: 1px solid #c1c8d4;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #fff;
+}
+
+.tryon-preview-frame canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.tryon-preview-label {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #5b667a;
 }
 
 .try-on-controls {
