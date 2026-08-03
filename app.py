@@ -8,9 +8,9 @@ import requests
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
 
-DEFAULT_GOOGLE_CLIENT_ID = "your-google-client-id"
-DEFAULT_GOOGLE_CLIENT_SECRET = "your-google-client-secret"
-DEFAULT_GOOGLE_REDIRECT_URI = "http://localhost:5000/auth/google"
+DEFAULT_GOOGLE_CLIENT_ID = None
+DEFAULT_GOOGLE_CLIENT_SECRET = None
+DEFAULT_GOOGLE_REDIRECT_URI = "https://aiml-ecommers-web-app.onrender.com/auth/google"
 
 conn = None
 
@@ -77,11 +77,12 @@ def home():
 
 @app.route("/login")
 def login():
-    client_id = os.environ.get("GOOGLE_CLIENT_ID", DEFAULT_GOOGLE_CLIENT_ID)
+    client_id = os.environ.get("GOOGLE_CLIENT_ID") or DEFAULT_GOOGLE_CLIENT_ID
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET") or DEFAULT_GOOGLE_CLIENT_SECRET
     redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI)
     auth_url = ""
 
-    if client_id:
+    if client_id and client_secret:
         params = {
             "client_id": client_id,
             "redirect_uri": redirect_uri,
@@ -112,11 +113,18 @@ def google_auth():
         return redirect(url_for("login"))
 
     token_url = "https://oauth2.googleapis.com/token"
+    client_id = os.environ.get("GOOGLE_CLIENT_ID") or DEFAULT_GOOGLE_CLIENT_ID
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET") or DEFAULT_GOOGLE_CLIENT_SECRET
+    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI)
+
+    if not client_id or not client_secret:
+        return "Google OAuth is not configured. Please set valid client ID and secret.", 400
+
     data = {
         "code": code,
-        "client_id": os.environ.get("GOOGLE_CLIENT_ID", DEFAULT_GOOGLE_CLIENT_ID),
-        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET", DEFAULT_GOOGLE_CLIENT_SECRET),
-        "redirect_uri": os.environ.get("GOOGLE_REDIRECT_URI", DEFAULT_GOOGLE_REDIRECT_URI),
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
         "grant_type": "authorization_code",
     }
 
