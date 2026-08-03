@@ -5,32 +5,46 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <!-- Filters Section -->
-    <div class="filters">
-        <form id="filter-form">
-            <select name="gender" id="gender"></select>
-            <select name="masterCategory" id="masterCategory"></select>
-            <select name="subCategory" id="subCategory"></select>
-            <select name="ArticleType" id="ArticleType"></select>
-            <select name="baseCOlour" id="baseCOlour"></select>
-            <select name="season" id="season"></select>
-            <label>Price Range:</label>
-            <div class="price-range-container">
-                <input type="range" id="min_price" name="min_price" min="0" max="100000" value="0">
-                <input type="range" id="max_price" name="max_price" min="0" max="100000" value="100000">
+    <main>
+        <section class="hero-banner">
+            <div class="hero-copy">
+                <h1>Discover Your Perfect Fit</h1>
+                <p>Browse a curated collection, filter by style and color, then preview your favorite look with live try-on.</p>
             </div>
-            <div id="price-value">₹0 - ₹100000</div>
-            <button type="submit">Apply Filters</button>
+            <div class="hero-actions">
+                <button class="hero-button" onclick="compareProducts()">Compare Selected</button>
+                <button class="hero-button secondary" onclick="clearSelectedProducts()">Clear Selected</button>
+            </div>
+        </section>
+
+        <div class="filters">
+        <form id="filter-form">
+            <div class="filter-row">
+                <select name="gender" id="gender"></select>
+                <select name="masterCategory" id="masterCategory"></select>
+                <select name="subCategory" id="subCategory"></select>
+            </div>
+            <div class="filter-row">
+                <select name="ArticleType" id="ArticleType"></select>
+                <select name="baseCOlour" id="baseCOlour"></select>
+                <select name="season" id="season"></select>
+            </div>
+            <div class="filter-row price-row">
+                <label>Price Range:</label>
+                <div class="price-range-container">
+                    <input type="range" id="min_price" name="min_price" min="0" max="100000" value="0">
+                    <input type="range" id="max_price" name="max_price" min="0" max="100000" value="100000">
+                </div>
+                <div id="price-value">₹0 - ₹100000</div>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="primary-button">Apply Filters</button>
+            </div>
         </form>
     </div>
 
     <div class="tryon-note">
         <strong>Try-On Guide:</strong> Select a product, click the <em>Try On</em> button, upload your reference photo in the popup, then use the scale and offset controls to preview the apparel fit.
-    </div>
-
-    <div class="top-actions">
-        <button onclick="compareProducts()">Compare Selected</button>
-        <button onclick="clearSelectedProducts()">Clear Selected</button>
     </div>
 
     <!-- Product Grid -->
@@ -41,36 +55,51 @@
 
     <!-- Virtual Try-On Popup -->
     <div id="tryon-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <button class="modal-close" type="button" onclick="closeTryOnModal()">✕</button>
-            <h3>Live Apparel Fitting</h3>
-            <div class="tryon-details">
-                <div class="tryon-product-card">
-                    <img id="modal-product-image" src="" alt="Product image">
-                    <div>
-                        <h4 id="modal-product-name"></h4>
-                        <p id="modal-product-price"></p>
-                        <p id="modal-product-category"></p>
-                        <p id="modal-product-attributes"></p>
+        <div class="modal-content tryon-modal-content">
+            <div class="tryon-modal-header">
+                <div>
+                    <h3>Live Apparel Fitting</h3>
+                    <p class="tryon-modal-subtitle">Upload a reference photo and preview the selected product on it instantly.</p>
+                </div>
+                <button class="modal-close" type="button" onclick="closeTryOnModal()">✕</button>
+            </div>
+            <div class="tryon-modal-body">
+                <div class="tryon-preview-column">
+                    <div class="tryon-preview-title">Uploaded Image Preview</div>
+                    <div class="tryon-preview-panel" id="tryon-preview-panel" style="display:none;">
+                        <div class="tryon-preview-frame">
+                            <canvas id="tryon-canvas"></canvas>
+                            <div class="preview-badge">Preview</div>
+                        </div>
+                        <div class="tryon-preview-label">Your uploaded reference image with apparel overlay</div>
+                        <button class="exit-tryon-button" type="button" onclick="closeTryOnModal()">Exit Try On</button>
+                    </div>
+                    <div class="tryon-placeholder" id="tryon-placeholder">
+                        <p>Select a product and upload your reference image to begin live fit.</p>
                     </div>
                 </div>
-                <div class="tryon-upload-card">
-                    <p>Upload a reference photo and the selected apparel will be overlaid on it automatically for virtual try-on.</p>
-                    <p class="tryon-note-small">Tip: choose a full-body or torso image for best results, then adjust scale and position.</p>
-                    <input type="file" id="reference-image-input" accept="image/*">
+                <div class="tryon-info-column">
+                    <div class="tryon-product-card">
+                        <img id="modal-product-image" src="" alt="Product image" loading="lazy" decoding="async">
+                        <div>
+                            <h4 id="modal-product-name"></h4>
+                            <p id="modal-product-price"></p>
+                            <p id="modal-product-category"></p>
+                            <p id="modal-product-attributes"></p>
+                        </div>
+                    </div>
+                    <div class="tryon-upload-card">
+                        <p>Choose a reference image to see the selected apparel fit.</p>
+                        <p class="tryon-note-small">Tip: full-body or torso images work best.</p>
+                        <input type="file" id="reference-image-input" accept="image/*">
+                    </div>
+                    <div id="tryon-controls" class="try-on-controls" style="display:none;">
+                        <label>Scale: <input type="range" id="tryon-scale" min="0.2" max="1.2" step="0.05" value="0.6"></label>
+                        <label>X Offset: <input type="range" id="tryon-offset-x" min="-200" max="200" step="5" value="0"></label>
+                        <label>Y Offset: <input type="range" id="tryon-offset-y" min="-200" max="200" step="5" value="0"></label>
+                        <button type="button" id="tryon-auto-fit">Auto Fit</button>
+                    </div>
                 </div>
-            </div>
-            <div class="tryon-preview-panel" id="tryon-preview-panel" style="display:none;">
-                <div class="tryon-preview-frame">
-                    <canvas id="tryon-canvas"></canvas>
-                </div>
-                <div class="tryon-preview-label">Your uploaded reference image with selected apparel overlay</div>
-            </div>
-            <div id="tryon-controls" class="try-on-controls" style="display:none;">
-                <label>Scale: <input type="range" id="tryon-scale" min="0.2" max="1.2" step="0.05" value="0.6"></label>
-                <label>X Offset: <input type="range" id="tryon-offset-x" min="-200" max="200" step="5" value="0"></label>
-                <label>Y Offset: <input type="range" id="tryon-offset-y" min="-200" max="200" step="5" value="0"></label>
-                <button type="button" id="tryon-auto-fit">Auto Fit</button>
             </div>
         </div>
     </div>
@@ -81,6 +110,7 @@
         <div id="comparison-results"></div>
         <button onclick="closeComparison()">Close</button>
     </div>
+    </main>
 
     <script>
         let selectedProducts = [];
@@ -170,7 +200,7 @@
                 grid.innerHTML += `
                     <div class="product-card">
                         <input type="checkbox" value="${p.id}" onchange="toggleProduct(this)">
-                        <img src="${p.image_url}" alt="${p.productDisplayname}">
+                        <img src="${p.image_url}" alt="${p.productDisplayname}" loading="lazy" decoding="async">
                         <h4>${p.productDisplayname}</h4>
                         <p>₹${p.price}</p>
                         <p>${p.gender}, ${p.masterCategory}, ${p.subCategory}</p>
@@ -221,6 +251,7 @@
             document.getElementById("tryon-preview-panel").style.display = "none";
             document.getElementById("tryon-canvas").style.display = "none";
             document.getElementById("tryon-controls").style.display = "none";
+            document.getElementById("tryon-placeholder").style.display = "block";
             userImage = null;
             productOverlayImage = null;
             tryOnScale = 0.6;
@@ -236,6 +267,14 @@
             document.getElementById("tryon-modal").style.display = "none";
         }
 
+        function getTryOnProduct() {
+            return activeTryOnProductId ? productMap[activeTryOnProductId] : null;
+        }
+
+        function showTryOnControls() {
+            document.getElementById("tryon-controls").style.display = "flex";
+        }
+
         function drawTryOn() {
             const canvas = document.getElementById("tryon-canvas");
             if (!userImage || !productOverlayImage) {
@@ -243,20 +282,25 @@
             }
 
             const ctx = canvas.getContext("2d");
-            canvas.width = userImage.naturalWidth;
-            canvas.height = userImage.naturalHeight;
+            const maxCanvasWidth = 960;
+            const imageScale = Math.min(1, maxCanvasWidth / userImage.naturalWidth);
+            canvas.width = Math.round(userImage.naturalWidth * imageScale);
+            canvas.height = Math.round(userImage.naturalHeight * imageScale);
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
 
-            const baseWidth = canvas.width * 0.5;
-            const overlayWidth = baseWidth * tryOnScale;
+            const overlayBaseWidth = canvas.width * 0.55;
+            const overlayWidth = overlayBaseWidth * tryOnScale;
             const overlayHeight = overlayWidth * (productOverlayImage.naturalHeight / productOverlayImage.naturalWidth);
             const x = (canvas.width - overlayWidth) / 2 + tryOnOffsetX;
-            const y = (canvas.height - overlayHeight) / 2 + tryOnOffsetY;
+            const y = canvas.height * 0.18 + tryOnOffsetY;
 
-            ctx.globalAlpha = 0.8;
+            ctx.save();
+            ctx.globalAlpha = 0.9;
+            ctx.filter = "drop-shadow(0px 14px 24px rgba(15, 23, 42, 0.18))";
             ctx.drawImage(productOverlayImage, x, y, overlayWidth, overlayHeight);
-            ctx.globalAlpha = 1;
+            ctx.restore();
         }
 
         function handleReferenceImageUpload(event) {
@@ -270,7 +314,9 @@
                 if (!product) return;
 
                 productOverlayImage = new Image();
+                productOverlayImage.crossOrigin = "anonymous";
                 productOverlayImage.onload = () => {
+                    document.getElementById("tryon-placeholder").style.display = "none";
                     document.getElementById("tryon-preview-panel").style.display = "block";
                     document.getElementById("tryon-canvas").style.display = "block";
                     document.getElementById("tryon-controls").style.display = "flex";
