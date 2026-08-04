@@ -133,7 +133,7 @@ def products():
     for product in products:
         product["image_url"] = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': f"{product['id']}.jpg"},
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{product['id']}.webp"},
             ExpiresIn=3600
         )
 
@@ -164,7 +164,7 @@ def compare():
     for p in products:
         p["image_url"] = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.jpg"},
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.webp"},
             ExpiresIn=3600
         )
 
@@ -185,7 +185,7 @@ def get_product_by_id(product_id):
     if product:
         product["image_url"] = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': f"{product['id']}.jpg"},
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{product['id']}.webp"},
             ExpiresIn=3600
         )
     return product
@@ -243,7 +243,7 @@ def query_products_by_color(color_name, limit=12):
     for p in products:
         p["image_url"] = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.jpg"},
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{p['id']}.webp"},
             ExpiresIn=3600
         )
     return products
@@ -303,7 +303,7 @@ def find_matching_products(product, groups, limit=4):
     for item in results:
         item["image_url"] = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': BUCKET_NAME, 'Key': f"{item['id']}.jpg"},
+            Params={'Bucket': BUCKET_NAME, 'Key': f"{item['id']}.webp"},
             ExpiresIn=3600
         )
     return results
